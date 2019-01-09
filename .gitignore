@@ -1,0 +1,4 @@
+neural/
+src/doggo_model.py
+logs/
+./app/model/Xception-fish.17-2.11.hdf5
