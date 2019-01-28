@@ -2,6 +2,7 @@
 import os
 import glob
 import numpy as np
+import cv2
 import PIL 
 import pdb
 
@@ -36,7 +37,7 @@ graph = tf.get_default_graph()
 
 
 def model_predict(img, model):
-    img = image.load_img(img, target_size=(299, 299))
+    img = cv2.resize(img, (299, 299))
 
     # Preprocessing the image
     x = image.img_to_array(img)
@@ -70,20 +71,21 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/predict', methods=['GET', 'POST'])
+@app.route('/predict', methods=['POST'])
 def upload():
-    if request.method == 'POST':
-        # Get the file from post request
-        f = request.files['file']
+    # Get the file from post request
+    file = request.data
 
-        # Make prediction
-        preds = model_predict(f, model)
+    #decode to cv2 img
+    nparr = np.fromstring(file, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        # Process your result for human
-        pred_class = decode_predictions(preds, top=5) 
-        result = str(pred_class)               # Convert to string
-    return render_template('predict.html', result=result)
+    # Make prediction
+    preds = model_predict(img, model)
 
+    # Process your result for human
+    pred_class = decode_predictions(preds, top=5) 
+    return jsonify(str(pred_class))
 
 if __name__ == '__main__':
     app.run(host= "0.0.0.0",port=5003, debug=True)
